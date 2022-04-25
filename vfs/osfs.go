@@ -136,7 +136,14 @@ func (*OsFs) Symlink(source, target string) error {
 // Readlink returns the destination of the named symbolic link
 // as absolute virtual path
 func (fs *OsFs) Readlink(name string) (string, error) {
-	p, err := os.Readlink(name)
+	info, err := os.Lstat(name)
+	if err != nil {
+		return "", err
+	}
+	if info.Mode()&os.ModeSymlink == 0 {
+		return "", os.ErrInvalid
+	}
+	p, err := filepath.EvalSymlinks(name)
 	if err != nil {
 		return p, err
 	}
